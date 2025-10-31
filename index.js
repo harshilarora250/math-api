@@ -17,21 +17,24 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+// Routes
+
 // Test route
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Math API is running!',
     endpoints: {
-      add: 'POST /add with {num1: number, num2: number}',
-      history: 'GET /history'
+      math: 'POST /math with {num1: number, num2: number, operation: "add|subtract|multiply|divide"}',
+      history: 'GET /history',
+      calculation: 'GET /calculation/:id'
     }
   });
 });
 
-// ADD - Add two numbers
-app.post('/add', async (req, res) => {
+// MATH - Single endpoint for all operations
+app.post('/math', async (req, res) => {
   try {
-    const { num1, num2 } = req.body;
+    const { num1, num2, operation } = req.body;
     
     // Validate inputs
     if (typeof num1 !== 'number' || typeof num2 !== 'number') {
@@ -40,15 +43,63 @@ app.post('/add', async (req, res) => {
       });
     }
     
-    // Calculate result
-    const result = num1 + num2;
+    if (!operation) {
+      return res.status(400).json({ 
+        error: 'Please provide an operation (add, subtract, multiply, divide)' 
+      });
+    }
+    
+    let result;
+    let operationSymbol;
+    let operationName;
+    
+    // Perform the operation
+    switch(operation.toLowerCase()) {
+      case 'add':
+      case 'addition':
+        result = num1 + num2;
+        operationSymbol = '+';
+        operationName = 'addition';
+        break;
+        
+      case 'subtract':
+      case 'subtraction':
+        result = num1 - num2;
+        operationSymbol = '-';
+        operationName = 'subtraction';
+        break;
+        
+      case 'multiply':
+      case 'multiplication':
+        result = num1 * num2;
+        operationSymbol = '×';
+        operationName = 'multiplication';
+        break;
+        
+      case 'divide':
+      case 'division':
+        if (num2 === 0) {
+          return res.status(400).json({ 
+            error: 'Cannot divide by zero!' 
+          });
+        }
+        result = num1 / num2;
+        operationSymbol = '÷';
+        operationName = 'division';
+        break;
+        
+      default:
+        return res.status(400).json({ 
+          error: 'Invalid operation. Use: add, subtract, multiply, or divide' 
+        });
+    }
     
     // Save to Firebase
     const calculation = {
       num1,
       num2,
       result,
-      operation: 'addition',
+      operation: operationName,
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     };
     
@@ -58,8 +109,9 @@ app.post('/add', async (req, res) => {
     res.json({
       num1,
       num2,
+      operation: operationName,
       result,
-      message: `${num1} + ${num2} = ${result}`,
+      message: `${num1} ${operationSymbol} ${num2} = ${result}`,
       calculationId: docRef.id
     });
     
@@ -83,6 +135,7 @@ app.get('/history', async (req, res) => {
         id: doc.id,
         num1: data.num1,
         num2: data.num2,
+        operation: data.operation,
         result: data.result,
         timestamp: data.timestamp
       });
@@ -112,6 +165,7 @@ app.get('/calculation/:id', async (req, res) => {
       id: doc.id,
       num1: data.num1,
       num2: data.num2,
+      operation: data.operation,
       result: data.result,
       timestamp: data.timestamp
     });
