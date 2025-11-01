@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math API Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .operation-btn {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .operation-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .result.show {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .result-message {
+            color: #333;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .history-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .history-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .history.show {
+            display: block;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item .equation {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .history-item .time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧮 Math Calculator</h1>
+        <p class="subtitle">Powered by your custom Math API</p>
+
+        <div class="error" id="error"></div>
+
+        <div class="input-group">
+            <label for="num1">First Number</label>
+            <input type="number" id="num1" placeholder="Enter first number" step="any">
+        </div>
+
+        <div class="input-group">
+            <label>Operation</label>
+            <div class="operations">
+                <button class="operation-btn selected" data-operation="add">+</button>
+                <button class="operation-btn" data-operation="subtract">−</button>
+                <button class="operation-btn" data-operation="multiply">×</button>
+                <button class="operation-btn" data-operation="divide">÷</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="num2">Second Number</label>
+            <input type="number" id="num2" placeholder="Enter second number" step="any">
+        </div>
+
+        <button class="calculate-btn" id="calculateBtn" onclick="calculate()">Calculate</button>
+
+        <div class="loading" id="loading">
+            <span class="spinner"></span> Calculating...
+        </div>
+
+        <div class="result" id="result">
+            <div class="result-label">Result</div>
+            <div class="result-value" id="resultValue">-</div>
+            <div class="result-message" id="resultMessage"></div>
+        </div>
+
+        <button class="history-btn" onclick="toggleHistory()">📜 View Calculation History</button>
+
+        <div class="history" id="history"></div>
+    </div>
+
+    <script>
+        let selectedOperation = 'add';
+        let historyVisible = false;
+
+        // Handle operation button clicks
+        document.querySelectorAll('.operation-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.operation-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedOperation = this.dataset.operation;
+            });
+        });
+
+        // Calculate function
+        async function calculate() {
+            const num1Input = document.getElementById('num1').value;
+            const num2Input = document.getElementById('num2').value;
+            const num1 = parseFloat(num1Input);
+            const num2 = parseFloat(num2Input);
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('resultValue');
+            const resultMessage = document.getElementById('resultMessage');
+            const loading = document.getElementById('loading');
+            const calculateBtn = document.getElementById('calculateBtn');
+
+            // Reset error
+            errorDiv.classList.remove('show');
+            errorDiv.textContent = '';
+
+            // Validate inputs
+            if (num1Input === '' || num2Input === '') {
+                showError('Please enter both numbers');
+                return;
+            }
+
+            if (isNaN(num1) || isNaN(num2)) {
+                showError('Please enter valid numbers');
+                return;
+            }
+
+            // Show loading
+            loading.classList.add('show');
+            resultDiv.classList.remove('show');
+            calculateBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/math', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        num1: num1,
+                        num2: num2,
+                        operation: selectedOperation
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show result
+                    resultValue.textContent = data.result;
+                    resultMessage.textContent = data.message;
+                    resultDiv.classList.add('show');
+                    
+                    // If history is visible, refresh it
+                    if (historyVisible) {
+                        loadHistory();
+                    }
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+            } catch (error) {
+                showError('Failed to connect to API. Please try again.');
+                console.error('Error:', error);
+            } finally {
+                loading.classList.remove('show');
+                calculateBtn.disabled = false;
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '⚠️ ' + message;
+            errorDiv.classList.add('show');
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // Load history
+        async function loadHistory() {
+            const historyDiv = document.getElementById('history');
+            
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.calculations.length > 0) {
+                        historyDiv.innerHTML = data.calculations.map(calc => {
+                            const symbol = getOperationSymbol(calc.operation);
+                            const time = calc.timestamp && calc.timestamp._seconds 
+                                ? new Date(calc.timestamp._seconds * 1000).toLocaleString()
+                                : 'Just now';
+                            
+                            return `
+                                <div class="history-item">
+                                    <div class="equation">${calc.num1} ${symbol} ${calc.num2} = ${calc.result}</div>
+                                    <div class="time">${time}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        historyDiv.innerHTML = '<div class="empty-history">No calculations yet. Start calculating! 🧮</div>';
+                    }
+                } else {
+                    historyDiv.innerHTML = '<div class="empty-history">Failed to load history</div>';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                historyDiv.innerHTML = '<div class="empty-history">Failed to load history</div>';
+            }
+        }
+
+        // Toggle history
+        async function toggleHistory() {
+            const historyDiv = document.getElementById('history');
+            
+            if (historyVisible) {
+                historyDiv.classList.remove('show');
+                historyVisible = false;
+            } else {
+                historyDiv.innerHTML = '<div class="empty-history"><span class="spinner"></span> Loading...</div>';
+                historyDiv.classList.add('show');
+                historyVisible = true;
+                await loadHistory();
+            }
+        }
+
+        // Get operation symbol
+        function getOperationSymbol(operation) {
+            const symbols = {
+                'addition': '+',
+                'subtraction': '−',
+                'multiplication': '×',
+                'division': '÷'
+            };
+            return symbols[operation] || operation;
+        }
+
+        // Allow Enter key to calculate
+        document.getElementById('num1').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('num2').focus();
+            }
+        });
+        
+        document.getElementById('num2').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>

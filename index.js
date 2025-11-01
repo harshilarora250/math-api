@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // Initialize Firebase
 const serviceAccount = require('./serviceAccountKey.json');
@@ -20,19 +21,19 @@ const db = admin.firestore();
 // Routes
 
 // Test route
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({ 
     message: 'Math API is running!',
     endpoints: {
-      math: 'POST /math with {num1: number, num2: number, operation: "add|subtract|multiply|divide"}',
-      history: 'GET /history',
-      calculation: 'GET /calculation/:id'
+      math: 'POST /api/math with {num1: number, num2: number, operation: "add|subtract|multiply|divide"}',
+      history: 'GET /api/history',
+      calculation: 'GET /api/calculation/:id'
     }
   });
 });
 
 // MATH - Single endpoint for all operations
-app.post('/math', async (req, res) => {
+app.post('/api/math', async (req, res) => {
   try {
     const { num1, num2, operation } = req.body;
     
@@ -121,7 +122,7 @@ app.post('/math', async (req, res) => {
 });
 
 // GET HISTORY - View all past calculations
-app.get('/history', async (req, res) => {
+app.get('/api/history', async (req, res) => {
   try {
     const snapshot = await db.collection('calculations')
       .orderBy('timestamp', 'desc')
@@ -152,7 +153,7 @@ app.get('/history', async (req, res) => {
 });
 
 // GET SPECIFIC CALCULATION
-app.get('/calculation/:id', async (req, res) => {
+app.get('/api/calculation/:id', async (req, res) => {
   try {
     const doc = await db.collection('calculations').doc(req.params.id).get();
     
